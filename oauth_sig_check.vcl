@@ -7,9 +7,9 @@ sub vcl_recv {
 #FASTLY recv
 #DEPLOY recv
 	set req.url = boltsort.sort(req.url);
-	set req.http.X-Consumer-Key = regsub(req.url, ".*\?.*oauth_consumer_key=(.*?)(&|$)", "\1");
+	set req.http.X-Consumer-Key = regsub(req.url, "(?i).*oauth_consumer_key=([^&]*).*", "\1");
 	set req.http.X-Consumer-Secret = table.lookup(consumer_secrets, req.http.X-Consumer-Key);
-	set req.http.X-Provided-Signature = regsub(req.url, ".*\?.*oauth_signature=(.*?)(&|$)", "\1");
+	set req.http.X-Provided-Signature = regsub(req.url, "(?i).*oauth_signature=([^&]*).*", "\1");
 	set req.http.X-Parameters = regsub(req.url, ".*\?", "");
 	set req.http.X-Parameters = regsub(req.http.X-Parameters, "&oauth_signature=[^&]*", "");
 	
@@ -23,9 +23,9 @@ sub vcl_recv {
 	set req.http.X-Signature-Base-String = 
 		req.request
 		"&"
-		req.http.X-Base-String-Uri
+		urlencode(req.http.X-Base-String-Uri)
 		"&"
-		req.http.X-Parameters;
+		urlencode(req.http.X-Parameters);
 
 	set req.http.X-Calculated-Signature = urlencode(digest.hmac_sha1_base64(
 		req.http.X-Consumer-Secret "&", req.http.X-Signature-Base-String));
