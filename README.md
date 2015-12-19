@@ -1,4 +1,4 @@
-# fastly-vcl-experiments
+# Fastly VCL Experiments
 Various experiments around Fastly's implementation of Varnish VCL
 
 ## Edge OAuth 1.0 Signature Validation (oauth_sig_check.vcl)
