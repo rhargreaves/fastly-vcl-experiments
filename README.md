@@ -2,7 +2,7 @@
 Various experiments around Fastly's implementation of Varnish VCL
 
 ## Edge OAuth 1.0 Signature Validation (oauth_sig_check.vcl)
-A proof-of-concept demonstrating the the ability to validate OAuth 1.0 HMAC-SHA1 signatures within VCL without having to validate the request against an authentication service by using a combination of Fastly's built in cryptographic functions and edge dictionaries. Validating the signature within VCL opens up the possiblity of caching auth responses on the edge.
+A proof-of-concept demonstrating the ability to validate OAuth 1.0 HMAC-SHA1 signatures within VCL without having to validate the request against an authentication service by using a combination of Fastly's built in cryptographic functions and edge dictionaries. Validating the signature within VCL opens up the possiblity of caching auth responses on the edge.
 
 * Only supports GET requests, where the OAuth parameters are passed on the URL.
 * Supports 2-legged and 3-legged auth flows.
