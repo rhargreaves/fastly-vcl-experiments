@@ -14,7 +14,7 @@ sub vcl_recv {
 	set req.backend = F_fake_backend;
 
 	set req.http.X-Bottle = if(req.url ~ "(?i)bottle=([^&]*)", urldecode(re.group.1), "99");
-	set req.http.X-Wall = if(req.http.X-Wall, " ", "") req.http.X-Bottle;
+	set req.http.X-Wall = if(req.http.X-Wall, req.http.X-Wall " ", "") req.http.X-Bottle;
 
 	if(req.http.X-Bottle == "0") {
 		error 996;
