@@ -1,5 +1,5 @@
 backend F_fake_backend {
-	.host = "fake-backend.example.com";
+	.host = "example.com";
 	.port = "80";
 	.dynamic = true;
 	.connect_timeout = 5s;
@@ -15,6 +15,8 @@ sub vcl_recv {
 
 	set req.http.X-Bottle = if(req.url ~ "(?i)bottle=([^&]*)", urldecode(re.group.1), "99");
 	set req.http.X-Wall = if(req.http.X-Wall, req.http.X-Wall " ", "") req.http.X-Bottle;
+
+	call set_next_bottle;
 
 	if(req.http.X-Bottle == "0") {
 		error 996;
