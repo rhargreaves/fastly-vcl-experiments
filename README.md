@@ -2,7 +2,7 @@
 Various experiments around Fastly's implementation of Varnish VCL
 
 ## Edge OAuth 1.0 Signature Validation (oauth_sig_check.vcl)
-A proof-of-concept demonstrating the ability to validate OAuth 1.0 HMAC-SHA1 signatures within VCL without having to validate the request against an authentication service by using a combination of Fastly's built in cryptographic functions and edge dictionaries. Validating the signature within VCL opens up the possiblity of caching auth responses on the edge.
+A proof-of-concept demonstrating the ability to validate OAuth 1.0 HMAC-SHA1 signatures within VCL without having to validate the request against an authentication backend service by using a combination of Fastly's built-in cryptographic functions and edge dictionaries.
 
 * Only supports GET requests, where the OAuth parameters are passed on the URL.
 * Supports 2-legged and 3-legged auth flows.
@@ -18,4 +18,9 @@ Setup a Fastly service with a fake backend, and run:
 $ curl 'http://<fastly_service_url>/?oauth_consumer_key=foo&oauth_nonce=801243096&oauth_signature_method=HMAC-SHA1&oauth_timestamp=1450615933&oauth_token=bar&oauth_version=1.0&oauth_signature=dKVOZboE9tthtQzfCjqYsVYvkhU%3D'
 ```
 
-All responses are synthentic. The actual backend will not be used.
+All responses are synthetic. The actual backend will not be used.
+
+## 99 Bottles of Beer (99_bottles.vcl)
+An implmentation of the 99 bottles of beer song in VCL that works on Fastly's network (WIP)
+
+The aim is to have the entire song returned in the response without explicitly referencing each bottle in the VCL (i.e. the bottle verses should be synthetically generated via some sort of loop or recursion).
