@@ -57,6 +57,23 @@ sub vcl_recv {
 		error 401 "Invalid OAuth Signature";
 	}
 
+	set req.http.X-OAuth-Timestamp = if(req.url ~ "(?i)oauth_timestamp=([0-9]*)", urldecode(re.group.1), "");
+	if(req.http.X-OAuth-Timestamp == "") {
+		error 401 "Missing/Invalid Timestamp";
+	}
+
+	if(time.is_after(
+		now,
+		time.add(std.integer2time(std.atoi(req.http.X-OAuth-Timestamp)), 30m))) {
+		error 401 "Timestamp expired";
+	}
+
+	if(time.is_after(
+		std.integer2time(std.atoi(req.http.X-OAuth-Timestamp)),
+		time.add(now, 1m))) {
+		error 401 "Timestamp too far in future";
+	}
+
 	error 200 "Authenticated!";
 
 	return(lookup);
