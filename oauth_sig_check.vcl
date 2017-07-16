@@ -33,8 +33,8 @@ sub vcl_recv {
 	set var.access_token = if(req.url ~ "(?i)oauth_token=([^&]*)", 
 			urldecode(re.group.1), "");
 	if(var.access_token != "") {
-		set var.access_token_secret = table.lookup(access_tokens, var.access_token);
-		if(!var.access_token_secret) {
+		set var.access_token_secret = table.lookup(access_tokens, var.access_token, "");
+		if(var.access_token_secret == "") {
 			error 401 "Invalid Access Token";
 		}
 	} else {

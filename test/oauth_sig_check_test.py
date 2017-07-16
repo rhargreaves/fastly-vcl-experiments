@@ -40,3 +40,19 @@ def test_returns_401_when_consumer_key_not_defined():
             proxies=proxies)
 
     assert_regex(response.text, 'Invalid Consumer Key')
+    assert_equals(response.status_code, 401)
+
+def test_returns_401_when_access_token_not_defined():
+    oauth = OAuth1('foo', 
+            client_secret='foo_secret',
+            resource_owner_key='unknown_token', 
+            resource_owner_secret='unknown_secret',
+            signature_type=SIGNATURE_TYPE_QUERY)
+    url = 'http://{0}/baz'.format(service_host)
+    response = requests.get(
+            auth=oauth,
+            url=url, 
+            proxies=proxies)
+
+    assert_regex(response.text, 'Invalid Access Token')
+    assert_equals(response.status_code, 401)
