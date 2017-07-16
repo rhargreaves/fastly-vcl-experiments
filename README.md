@@ -30,9 +30,6 @@ $ pip3 install --user -r requirements.txt
 $ SERVICE_HOST=<fastly_service_host> nosetests
 ```
 
-## Edge OAuth 1.0 Signature Validation (oauth_sig_check.vcl)
-A proof-of-concept demonstrating the ability to validate OAuth 1.0 HMAC-SHA1 signatures within VCL without having to validate the request against an authentication backend service by using a combination of Fastly's built-in cryptographic functions and edge dictionaries.
-
 ## 99 Bottles of Beer (99_bottles.vcl) (Incomplete)
 An implementation of the 99 bottles of beer song in VCL that works on Fastly.
 
