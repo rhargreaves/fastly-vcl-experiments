@@ -33,7 +33,7 @@ $ SERVICE_HOST=<fastly_service_host> nosetests
 ## Edge OAuth 1.0 Signature Validation (oauth_sig_check.vcl)
 A proof-of-concept demonstrating the ability to validate OAuth 1.0 HMAC-SHA1 signatures within VCL without having to validate the request against an authentication backend service by using a combination of Fastly's built-in cryptographic functions and edge dictionaries.
 
-## 99 Bottles of Beer (99_bottles.vcl)
-An implmentation of the 99 bottles of beer song in VCL that works on Fastly's network (WIP)
+## 99 Bottles of Beer (99_bottles.vcl) (Incomplete)
+An implementation of the 99 bottles of beer song in VCL that works on Fastly.
 
 The aim is to have the entire song returned in the response without explicitly referencing each bottle in the VCL (i.e. the bottle verses should be synthetically generated via some sort of loop or recursion).
