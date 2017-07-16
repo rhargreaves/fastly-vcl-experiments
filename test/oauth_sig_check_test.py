@@ -29,3 +29,14 @@ def test_returns_401_when_consumer_key_missing():
 
     assert_regex(response.text, 'Missing Consumer Key')
     assert_equals(response.status_code, 401)
+
+def test_returns_401_when_consumer_key_not_defined():
+    oauth = OAuth1('unknown_key', client_secret='unknown_secret',
+             signature_type=SIGNATURE_TYPE_QUERY)
+    url = 'http://{0}/baz'.format(service_host)
+    response = requests.get(
+            auth=oauth,
+            url=url, 
+            proxies=proxies)
+
+    assert_regex(response.text, 'Invalid Consumer Key')

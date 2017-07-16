@@ -26,8 +26,8 @@ sub vcl_recv {
 	if(var.consumer_key == "") {
 		error 401 "Missing Consumer Key";
 	}
-	set var.consumer_secret = table.lookup(consumer_secrets, var.consumer_key);
-	if(!var.consumer_secret) {
+	set var.consumer_secret = table.lookup(consumer_secrets, var.consumer_key, "");
+	if(var.consumer_secret == "") {
 		error 401 "Invalid Consumer Key";
 	}
 	set var.access_token = if(req.url ~ "(?i)oauth_token=([^&]*)", 
