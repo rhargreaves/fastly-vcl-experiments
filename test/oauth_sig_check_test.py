@@ -31,8 +31,9 @@ def test_returns_401_when_consumer_key_missing():
     assert_equals(response.status_code, 401)
 
 def test_returns_401_when_consumer_key_not_defined():
-    oauth = OAuth1('unknown_key', client_secret='unknown_secret',
-             signature_type=SIGNATURE_TYPE_QUERY)
+    oauth = OAuth1('unknown_key', 
+                   client_secret='unknown_secret',
+                   signature_type=SIGNATURE_TYPE_QUERY)
     url = 'http://{0}/baz'.format(service_host)
     response = requests.get(
             auth=oauth,
@@ -55,4 +56,13 @@ def test_returns_401_when_access_token_not_defined():
             proxies=proxies)
 
     assert_regex(response.text, 'Invalid Access Token')
+    assert_equals(response.status_code, 401)
+
+def test_returns_401_when_missing_signature():
+    url = 'http://{0}/baz?oauth_consumer_key=foo'.format(service_host)
+    response = requests.get(
+            url=url, 
+            proxies=proxies)
+
+    assert_regex(response.text, 'Missing Signature')
     assert_equals(response.status_code, 401)
