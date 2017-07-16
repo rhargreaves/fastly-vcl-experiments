@@ -66,3 +66,17 @@ def test_returns_401_when_missing_signature():
 
     assert_regex(response.text, 'Missing Signature')
     assert_equals(response.status_code, 401)
+
+def test_returns_401_when_signature_invalid():
+    oauth = OAuth1('foo', client_secret='wrong_secret',
+             signature_type=SIGNATURE_TYPE_QUERY)
+    url = 'http://{0}/baz'.format(service_host)
+    response = requests.get(
+            url=url, 
+            auth=oauth,
+            proxies=proxies)
+
+    assert_regex(response.text, 'Invalid OAuth Signature')
+    assert_equals(response.status_code, 401)
+
+
