@@ -1,13 +1,6 @@
 # Fastly VCL Experiments
 Various experiments around Fastly's implementation of Varnish VCL
 
-## Running Tests
-
-```
-$ pip3 install --user -r requirements.txt
-$ python3 oauth_sig_check_test.py
-```
-
 ## Edge OAuth 1.0 Signature Validation (oauth_sig_check.vcl)
 A proof-of-concept demonstrating the ability to validate OAuth 1.0 HMAC-SHA1 signatures within VCL without having to validate the request against an authentication backend service by using a combination of Fastly's built-in cryptographic functions and edge dictionaries.
 
@@ -34,7 +27,7 @@ All responses are synthetic. The actual backend will not be used.
 ### Tests
 ```
 $ pip3 install --user -r requirements.txt
-$ SERVICE_URL=<fastly_service_url> python3 oauth_sig_check_test.py
+$ SERVICE_HOST=<fastly_service_host> nosetests
 ```
 
 ## Edge OAuth 1.0 Signature Validation (oauth_sig_check.vcl)
