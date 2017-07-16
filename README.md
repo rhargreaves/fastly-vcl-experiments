@@ -1,6 +1,13 @@
 # Fastly VCL Experiments
 Various experiments around Fastly's implementation of Varnish VCL
 
+## Running Tests
+
+```
+$ pip3 install --user -r requirements.txt
+$ python3 oauth_sig_check_test.py
+```
+
 ## Edge OAuth 1.0 Signature Validation (oauth_sig_check.vcl)
 A proof-of-concept demonstrating the ability to validate OAuth 1.0 HMAC-SHA1 signatures within VCL without having to validate the request against an authentication backend service by using a combination of Fastly's built-in cryptographic functions and edge dictionaries.
 
@@ -23,6 +30,15 @@ As the above URL will have likely expired, you can use https://bettiolo.github.i
 
 
 All responses are synthetic. The actual backend will not be used.
+
+### Tests
+```
+$ pip3 install --user -r requirements.txt
+$ SERVICE_URL=<fastly_service_url> python3 oauth_sig_check_test.py
+```
+
+## Edge OAuth 1.0 Signature Validation (oauth_sig_check.vcl)
+A proof-of-concept demonstrating the ability to validate OAuth 1.0 HMAC-SHA1 signatures within VCL without having to validate the request against an authentication backend service by using a combination of Fastly's built-in cryptographic functions and edge dictionaries.
 
 ## 99 Bottles of Beer (99_bottles.vcl)
 An implmentation of the 99 bottles of beer song in VCL that works on Fastly's network (WIP)

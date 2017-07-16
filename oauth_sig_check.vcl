@@ -1,76 +1,88 @@
 
 table consumer_secrets {
-	"foo": "super_secret"
+	"foo": "foo_secret"
 }
 
 table access_tokens {
-	"bar": "token_secret"
+	"bar": "bar_secret"
 }
 
 sub vcl_recv {
 #FASTLY recv
 #DEPLOY recv
-	set req.http.X-OAuth-Consumer-Key = if(req.url ~ "(?i)oauth_consumer_key=([^&]*)", urldecode(re.group.1), "");
-	if(req.http.X-OAuth-Consumer-Key == "") {
+	declare local var.consumer_key STRING;
+	declare local var.consumer_secret STRING;
+	declare local var.access_token STRING;
+	declare local var.access_token_secret STRING;
+	declare local var.provided_signature STRING;
+	declare local var.parameters STRING;
+	declare local var.base_string_uri STRING;
+	declare local var.base_string STRING;
+	declare local var.calculated_signature STRING;
+	declare local var.timestamp STRING;
+
+	set var.consumer_key = if(req.url ~ "(?i)oauth_consumer_key=([^&]*)", 
+			urldecode(re.group.1), "");
+	if(var.consumer_key == "") {
 		error 401 "Missing Consumer Key";
 	}
-	set req.http.X-OAuth-Consumer-Secret = table.lookup(consumer_secrets, req.http.X-OAuth-Consumer-Key);
-	if(!req.http.X-OAuth-Consumer-Secret) {
+	set var.consumer_secret = table.lookup(consumer_secrets, var.consumer_key);
+	if(!var.consumer_secret) {
 		error 401 "Invalid Consumer Key";
 	}
-	set req.http.X-OAuth-Access-Token = if(req.url ~ "(?i)oauth_token=([^&]*)", urldecode(re.group.1), "");
-	if(req.http.X-OAuth-Access-Token != "") {
-		set req.http.X-OAuth-Access-Token-Secret = table.lookup(access_tokens, req.http.X-OAuth-Access-Token);
-		if(!req.http.X-OAuth-Access-Token-Secret) {
+	set var.access_token = if(req.url ~ "(?i)oauth_token=([^&]*)", 
+			urldecode(re.group.1), "");
+	if(var.access_token != "") {
+		set var.access_token_secret = table.lookup(access_tokens, var.access_token);
+		if(!var.access_token_secret) {
 			error 401 "Invalid Access Token";
 		}
 	} else {
-		set req.http.X-OAuth-Access-Token-Secret = "";
+		set var.access_token_secret = "";
 	}
-	set req.http.X-OAuth-Provided-Signature = if(req.url ~ "(?i)oauth_signature=([^&]*)", urldecode(re.group.1), "");
-	if(req.http.X-OAuth-Provided-Signature == "") {
+	set var.provided_signature = if(req.url ~ "(?i)oauth_signature=([^&]*)", 
+			urldecode(re.group.1), "");
+	if(var.provided_signature == "") {
 		error 401 "Missing Signature";
 	}
-	set req.http.X-OAuth-Ordered-Url = boltsort.sort(req.url);
-	set req.http.X-OAuth-Parameters = regsub(regsub(req.http.X-OAuth-Ordered-Url, ".*\?", ""), "&oauth_signature=[^&]*", "");
-	set req.http.X-OAuth-Base-String-Uri = 
+	set var.parameters = regsub(
+			regsub(boltsort.sort(req.url), ".*\?", ""), 
+			"&oauth_signature=[^&]*", "");
+	set var.base_string_uri = 
 		if(req.http.Fastly-SSL, "https", "http") 
-		"://"
-		std.tolower(req.http.host)
-		req.url.path;
-	set req.http.X-OAuth-Signature-Base-String = 
+			"://"
+				std.tolower(req.http.host)
+				req.url.path;
+	set var.base_string = 
 		req.request
 		"&"
-		urlencode(req.http.X-OAuth-Base-String-Uri)
+		urlencode(var.base_string_uri)
 		"&"
-		urlencode(req.http.X-OAuth-Parameters);
+		urlencode(var.parameters);
 
-	set req.http.X-OAuth-Calculated-Signature = digest.hmac_sha1_base64(
-			req.http.X-OAuth-Consumer-Secret "&" req.http.X-OAuth-Access-Token-Secret, 
-			req.http.X-OAuth-Signature-Base-String);
+	set var.calculated_signature = digest.hmac_sha1_base64(
+			var.consumer_secret "&" var.access_token_secret, 
+			var.base_string);
 
-	unset req.http.X-OAuth-Consumer-Secret;
-	unset req.http.X-OAuth-Access-Token-Secret;
-	unset req.http.X-OAuth-Base-String-Uri;
-
-	if(req.http.X-OAuth-Provided-Signature != req.http.X-OAuth-Calculated-Signature) {
+	if(var.provided_signature != var.calculated_signature) {
 		error 401 "Invalid OAuth Signature";
 	}
 
-	set req.http.X-OAuth-Timestamp = if(req.url ~ "(?i)oauth_timestamp=([0-9]*)", urldecode(re.group.1), "");
-	if(req.http.X-OAuth-Timestamp == "") {
+	set var.timestamp = if(req.url ~ "(?i)oauth_timestamp=([0-9]*)", 
+			urldecode(re.group.1), "");
+	if(var.timestamp == "") {
 		error 401 "Missing/Invalid Timestamp";
 	}
 
 	if(time.is_after(
-		now,
-		time.add(std.integer2time(std.atoi(req.http.X-OAuth-Timestamp)), 30m))) {
+				now,
+				time.add(std.integer2time(std.atoi(var.timestamp)), 30m))) {
 		error 401 "Timestamp expired";
 	}
 
 	if(time.is_after(
-		std.integer2time(std.atoi(req.http.X-OAuth-Timestamp)),
-		time.add(now, 1m))) {
+				std.integer2time(std.atoi(var.timestamp)),
+				time.add(now, 1m))) {
 		error 401 "Timestamp too far in future";
 	}
 
@@ -99,13 +111,6 @@ sub vcl_miss {
 
 sub vcl_deliver{
 #FASTLY deliver
-	# Expose variables for debugging
-	set resp.http.X-OAuth-Consumer-Key = req.http.X-OAuth-Consumer-Key;
-	set resp.http.X-OAuth-Access-Token = req.http.X-OAuth-Access-Token;
-	set resp.http.X-OAuth-Provided-Signature = req.http.X-OAuth-Provided-Signature;
-	set resp.http.X-OAuth-Calculated-Signature = req.http.X-OAuth-Calculated-Signature;
-	set resp.http.X-OAuth-Parameters = req.http.X-OAuth-Parameters;
-	set resp.http.X-OAuth-Signature-Base-String = req.http.X-OAuth-Signature-Base-String;
 	return(deliver);
 }
 
