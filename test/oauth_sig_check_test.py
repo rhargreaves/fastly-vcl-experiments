@@ -4,6 +4,7 @@ from requests_oauthlib import OAuth1
 from oauthlib.oauth1 import SIGNATURE_TYPE_QUERY
 from nose.tools import assert_equals, assert_regex
 from freezegun import freeze_time
+from datetime import datetime, timedelta
 
 proxies = {
     'http': 'http://nonssl.global.fastly.net:80'
@@ -93,3 +94,15 @@ def test_returns_401_when_timestamp_is_too_old():
     assert_regex(response.text, 'Timestamp expired')
     assert_equals(response.status_code, 401)
 
+@freeze_time(datetime.now() + timedelta(hours=1))
+def test_returns_401_when_timestamp_is_in_future():
+    oauth = OAuth1('foo', client_secret='foo_secret',
+             signature_type=SIGNATURE_TYPE_QUERY)
+    url = 'http://{0}/baz'.format(service_host)
+    response = requests.get(
+            url=url, 
+            auth=oauth,
+            proxies=proxies)
+
+    assert_regex(response.text, 'Timestamp too far in future')
+    assert_equals(response.status_code, 401)
