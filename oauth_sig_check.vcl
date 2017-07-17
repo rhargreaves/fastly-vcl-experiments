@@ -64,7 +64,8 @@ sub vcl_recv {
 			var.consumer_secret "&" var.access_token_secret, 
 			var.base_string);
 
-	if(var.provided_signature != var.calculated_signature) {
+	if(!digest.secure_is_equal(var.provided_signature, 
+			var.calculated_signature)) {
 		error 401 "Invalid OAuth Signature";
 	}
 
