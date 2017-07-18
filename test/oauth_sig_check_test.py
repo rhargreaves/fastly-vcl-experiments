@@ -16,7 +16,7 @@ def test_returns_200_when_authentication_passes_for_key_only():
              signature_type=SIGNATURE_TYPE_QUERY)
     url = 'http://{0}/baz'.format(service_host)
     response = requests.get(
-            url=url, 
+            url=url,
             auth=oauth,
             proxies=proxies)
 
@@ -24,14 +24,14 @@ def test_returns_200_when_authentication_passes_for_key_only():
     assert_equals(response.status_code, 200)
 
 def test_returns_200_when_authentication_passes_for_token():
-    oauth = OAuth1('foo', 
+    oauth = OAuth1('foo',
                    client_secret='foo_secret',
                    resource_owner_key='bar',
                    resource_owner_secret='bar_secret',
                    signature_type=SIGNATURE_TYPE_QUERY)
     url = 'http://{0}/baz'.format(service_host)
     response = requests.get(
-            url=url, 
+            url=url,
             auth=oauth,
             proxies=proxies)
 
@@ -41,35 +41,35 @@ def test_returns_200_when_authentication_passes_for_token():
 def test_returns_401_when_consumer_key_missing():
     url = 'http://{0}/baz'.format(service_host)
     response = requests.get(
-            url=url, 
+            url=url,
             proxies=proxies)
 
     assert_regex(response.text, 'Missing Consumer Key')
     assert_equals(response.status_code, 401)
 
 def test_returns_401_when_consumer_key_not_defined():
-    oauth = OAuth1('unknown_key', 
+    oauth = OAuth1('unknown_key',
                    client_secret='unknown_secret',
                    signature_type=SIGNATURE_TYPE_QUERY)
     url = 'http://{0}/baz'.format(service_host)
     response = requests.get(
             auth=oauth,
-            url=url, 
+            url=url,
             proxies=proxies)
 
     assert_regex(response.text, 'Invalid Consumer Key')
     assert_equals(response.status_code, 401)
 
 def test_returns_401_when_access_token_not_defined():
-    oauth = OAuth1('foo', 
+    oauth = OAuth1('foo',
             client_secret='foo_secret',
-            resource_owner_key='unknown_token', 
+            resource_owner_key='unknown_token',
             resource_owner_secret='unknown_secret',
             signature_type=SIGNATURE_TYPE_QUERY)
     url = 'http://{0}/baz'.format(service_host)
     response = requests.get(
             auth=oauth,
-            url=url, 
+            url=url,
             proxies=proxies)
 
     assert_regex(response.text, 'Invalid Access Token')
@@ -78,7 +78,7 @@ def test_returns_401_when_access_token_not_defined():
 def test_returns_401_when_missing_signature():
     url = 'http://{0}/baz?oauth_consumer_key=foo'.format(service_host)
     response = requests.get(
-            url=url, 
+            url=url,
             proxies=proxies)
 
     assert_regex(response.text, 'Missing Signature')
@@ -89,33 +89,33 @@ def test_returns_401_when_signature_invalid():
              signature_type=SIGNATURE_TYPE_QUERY)
     url = 'http://{0}/baz'.format(service_host)
     response = requests.get(
-            url=url, 
+            url=url,
             auth=oauth,
             proxies=proxies)
 
     assert_regex(response.text, 'Invalid OAuth Signature')
     assert_equals(response.status_code, 401)
 
-@freeze_time('2017-01-01')
+@freeze_time(datetime.utcnow() - timedelta(minutes=35))
 def test_returns_401_when_timestamp_is_too_old():
     oauth = OAuth1('foo', client_secret='foo_secret',
              signature_type=SIGNATURE_TYPE_QUERY)
     url = 'http://{0}/baz'.format(service_host)
     response = requests.get(
-            url=url, 
+            url=url,
             auth=oauth,
             proxies=proxies)
 
     assert_regex(response.text, 'Timestamp expired')
     assert_equals(response.status_code, 401)
 
-@freeze_time(datetime.now() + timedelta(hours=1))
+@freeze_time(datetime.utcnow() + timedelta(minutes=5))
 def test_returns_401_when_timestamp_is_in_future():
     oauth = OAuth1('foo', client_secret='foo_secret',
              signature_type=SIGNATURE_TYPE_QUERY)
     url = 'http://{0}/baz'.format(service_host)
     response = requests.get(
-            url=url, 
+            url=url,
             auth=oauth,
             proxies=proxies)
 

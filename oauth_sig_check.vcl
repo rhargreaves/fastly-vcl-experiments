@@ -19,7 +19,13 @@ sub vcl_recv {
 	declare local var.base_string_uri STRING;
 	declare local var.base_string STRING;
 	declare local var.calculated_signature STRING;
-	declare local var.timestamp STRING;
+	declare local var.timestamp_parameter STRING;
+	declare local var.timestamp TIME;
+	declare local var.max_timestamp_age TIME;
+	declare local var.max_timestamp_in_future TIME;
+
+	set var.max_timestamp_age = 30m;
+	set var.max_timestamp_in_future = 1m;
 
 	set req.url = boltsort.sort(req.url);
 
@@ -71,21 +77,22 @@ sub vcl_recv {
 		error 401 "Invalid OAuth Signature";
 	}
 
-	set var.timestamp = if(req.url ~ "(?i)oauth_timestamp=([0-9]*)",
+	set var.timestamp_parameter = if(req.url ~ "(?i)oauth_timestamp=([0-9]*)",
 			urldecode(re.group.1), "");
-	if(var.timestamp == "") {
+	if(var.timestamp_parameter == "") {
 		error 401 "Missing/Invalid Timestamp";
 	}
 
+	set var.timestamp = std.integer2time(std.atoi(var.timestamp_parameter));
 	if(time.is_after(
 				now,
-				time.add(std.integer2time(std.atoi(var.timestamp)), 30m))) {
+				time.add(var.timestamp,	var.max_timestamp_age))) {
 		error 401 "Timestamp expired";
 	}
 
 	if(time.is_after(
-				std.integer2time(std.atoi(var.timestamp)),
-				time.add(now, 1m))) {
+				var.timestamp,
+				time.add(now, var.max_timestamp_in_future))) {
 		error 401 "Timestamp too far in future";
 	}
 
