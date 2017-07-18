@@ -9,7 +9,7 @@ table access_tokens {
 
 sub vcl_recv {
 #FASTLY recv
-#DEPLOY recv
+#7D_DEPLOY recv
 	declare local var.consumer_key STRING;
 	declare local var.consumer_secret STRING;
 	declare local var.access_token STRING;
@@ -119,7 +119,7 @@ sub vcl_deliver{
 
 sub vcl_error {
 #FASTLY error
-#DEPLOY error
+#7D_DEPLOY error
 }
 
 sub vcl_pass {
