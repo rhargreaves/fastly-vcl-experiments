@@ -21,7 +21,9 @@ sub vcl_recv {
 	declare local var.calculated_signature STRING;
 	declare local var.timestamp STRING;
 
-	set var.consumer_key = if(req.url ~ "(?i)oauth_consumer_key=([^&]*)", 
+	set req.url = boltsort.sort(req.url);
+
+	set var.consumer_key = if(req.url ~ "(?i)oauth_consumer_key=([^&]*)",
 			urldecode(re.group.1), "");
 	if(var.consumer_key == "") {
 		error 401 "Missing Consumer Key";
@@ -30,7 +32,7 @@ sub vcl_recv {
 	if(var.consumer_secret == "") {
 		error 401 "Invalid Consumer Key";
 	}
-	set var.access_token = if(req.url ~ "(?i)oauth_token=([^&]*)", 
+	set var.access_token = if(req.url ~ "(?i)oauth_token=([^&]*)",
 			urldecode(re.group.1), "");
 	if(var.access_token != "") {
 		set var.access_token_secret = table.lookup(access_tokens, var.access_token, "");
@@ -40,20 +42,20 @@ sub vcl_recv {
 	} else {
 		set var.access_token_secret = "";
 	}
-	set var.provided_signature = if(req.url ~ "(?i)oauth_signature=([^&]*)", 
+	set var.provided_signature = if(req.url ~ "(?i)oauth_signature=([^&]*)",
 			urldecode(re.group.1), "");
 	if(var.provided_signature == "") {
 		error 401 "Missing Signature";
 	}
 	set var.parameters = regsub(
-			regsub(boltsort.sort(req.url), ".*\?", ""), 
+			req.url.qs,
 			"&oauth_signature=[^&]*", "");
-	set var.base_string_uri = 
-		if(req.http.Fastly-SSL, "https", "http") 
+	set var.base_string_uri =
+		if(req.http.Fastly-SSL, "https", "http")
 			"://"
 				std.tolower(req.http.host)
 				req.url.path;
-	set var.base_string = 
+	set var.base_string =
 		req.request
 		"&"
 		urlencode(var.base_string_uri)
@@ -61,15 +63,15 @@ sub vcl_recv {
 		urlencode(var.parameters);
 
 	set var.calculated_signature = digest.hmac_sha1_base64(
-			var.consumer_secret "&" var.access_token_secret, 
+			var.consumer_secret "&" var.access_token_secret,
 			var.base_string);
 
-	if(!digest.secure_is_equal(var.provided_signature, 
+	if(!digest.secure_is_equal(var.provided_signature,
 			var.calculated_signature)) {
 		error 401 "Invalid OAuth Signature";
 	}
 
-	set var.timestamp = if(req.url ~ "(?i)oauth_timestamp=([0-9]*)", 
+	set var.timestamp = if(req.url ~ "(?i)oauth_timestamp=([0-9]*)",
 			urldecode(re.group.1), "");
 	if(var.timestamp == "") {
 		error 401 "Missing/Invalid Timestamp";
